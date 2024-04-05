@@ -15,10 +15,8 @@ impl Store {
     }
 
     /// Sets a key-value pair in the store.
-    /// 
-    /// Returns the previous value associated with the key, if it exists.
-    pub fn set(&mut self, key: Key, value: Value) -> Option<Value> {
-        self.map.insert(key, value)
+    pub fn set(&mut self, key: Key, value: Value) {
+        self.map.insert(key, value);
     }
 
     /// Gets the value associated with the key.
@@ -39,6 +37,7 @@ impl Store {
 
 pub type Key = String;
 
+#[derive(Debug)]
 pub enum Value {
     Str(String),
     Int(i64),
