@@ -1,13 +1,19 @@
 use std::io::{stdin, stdout, Write};
 
+use store::Store;
+
+mod store;
+
 fn main() {
     println!("Welcome to the Kiwi 🥝 shell!");
     println!("Type 'help' to see a list of commands");
 
-    shell();
+    let mut store = Store::new();
+
+    shell(&mut store);
 }
 
-fn shell() {
+fn shell(store: &mut Store) {
     loop {
         print!("> ");
         stdout().flush().unwrap();
@@ -20,11 +26,11 @@ fn shell() {
             break;
         }
 
-        handle_command(input);
+        handle_command(input, store);
     }
 }
 
-fn handle_command(input: &str) {
+fn handle_command(input: &str, store: &mut Store) {
     // TODO: empty command or `help` shows help
 
     println!("You entered: {}", input);
