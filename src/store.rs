@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 /// A key-value store.
 /// 
@@ -43,4 +43,15 @@ pub enum Value {
     Int(i64),
     Float(f64),
     Bool(bool)
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Str(s) => write!(f, "str {}", s),
+            Value::Int(i) => write!(f, "int {}", i),
+            Value::Float(fl) => write!(f, "float {}", fl),
+            Value::Bool(b) => write!(f, "bool {}", b),
+        }
+    }
 }

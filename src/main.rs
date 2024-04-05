@@ -39,11 +39,11 @@ fn handle_command(input: String, store: &mut Store) -> Result<(), String> {
             println!("OK")
         }
         Command::Get(key) => match store.get(&key) {
-            Some(value) => println!("{:?}", value),
+            Some(value) => println!("{}", value),
             None => println!("Key not found"),
         },
         Command::Del(key) => match store.del(&key) {
-            Some(value) => println!("Deleted value: {:?}", value),
+            Some(value) => println!("Deleted value: {}", value),
             None => println!("Key not found"),
         },
         Command::Exit => std::process::exit(0),
