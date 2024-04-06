@@ -1,65 +1,91 @@
-use std::io::{stdin, stdout, Write};
-
 use parser::{parse_input, Command};
-use store::Store;
+use store::{ArcMutexStore, Store};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::{TcpListener, TcpStream},
+};
 
 mod parser;
 mod store;
 
-fn main() {
-    println!("Welcome to the Kiwi 🥝 shell!");
-    println!("Type 'help' to see a list of commands");
+#[tokio::main]
+async fn main() {
+    let store = Store::new();
 
-    let mut store = Store::new();
+    let host = "127.0.0.1";
+    let port = "6131";
+    let addr = format!("{host}:{port}");
+    let listener = TcpListener::bind(&addr)
+        .await
+        .unwrap_or_else(|e| panic!("Failed to bind to port {port}\nError: {e}"));
+    println!("Listening on {}", addr);
 
-    shell(&mut store);
+    loop {
+        let (socket, _) = listener
+            .accept()
+            .await
+            .unwrap_or_else(|e| panic!("Failed to accept connection\nError: {e}"));
+        let store = store.clone();
+
+        tokio::spawn(async move {
+            handle_connection(socket, store).await;
+        });
+    }
 }
 
-fn shell(store: &mut Store) {
+async fn handle_connection(socket: TcpStream, store: ArcMutexStore) {
+    let (mut reader, mut writer) = tokio::io::split(socket);
+
     loop {
-        print!("> ");
-        stdout().flush().unwrap();
+        let mut buf = vec![0; 1024];
+        let n = match reader.read(&mut buf).await {
+            Ok(n) if n == 0 => return,
+            Ok(n) => n,
+            Err(e) => {
+                eprintln!("Failed to read from socket: {}", e);
+                return;
+            }
+        };
 
-        let mut input = String::new();
-        stdin().read_line(&mut input).unwrap();
+        let input = String::from_utf8_lossy(&buf[..n]).to_string();
+        let response = match handle_command(input, store.clone()).await {
+            Ok(response) => response,
+            Err(e) => e,
+        } + "\n\n";
 
-        match handle_command(input, store) {
-            Ok(_) => (),
-            Err(e) => eprintln!("Error: {}", e),
+        if let Err(e) = writer.write_all(response.as_bytes()).await {
+            eprintln!("Failed to write to socket: {}", e);
+            return;
         }
     }
 }
 
-fn handle_command(input: String, store: &mut Store) -> Result<(), String> {
-    // TODO: empty command or `help` shows help
-
+async fn handle_command(input: String, store: ArcMutexStore) -> Result<String, String> {
     match parse_input(input)? {
         Command::Set(key, value) => {
-            store.set(key, value);
-            println!("OK")
+            store.lock().await.set(key, value);
+            Ok("OK".to_string())
         }
-        Command::Get(key) => match store.get(&key) {
-            Some(value) => println!("{}", value),
-            None => println!("Key not found"),
+        Command::Get(key) => match store.lock().await.get(&key) {
+            Some(value) => Ok(value.to_string()),
+            None => Ok("Key not found".to_string()),
         },
-        Command::Del(key) => match store.del(&key) {
-            Some(value) => println!("Deleted value: {}", value),
-            None => println!("Key not found"),
+        Command::Del(key) => match store.lock().await.del(&key) {
+            Some(value) => Ok(value.to_string()),
+            None => Ok("Key not found".to_string()),
         },
-        Command::Exit => std::process::exit(0),
-        Command::Help => {
-            println!("Commands:");
-            println!("  set <type> <key> <value> - Set a key-value pair");
-            println!("       |");
-            println!("       └─ <type> can be one of: str, int, float, bool");
-            println!("  get <key>                - Get the value associated with a key");
-            println!("  del <key>                - Delete a key-value pair");
-            println!("  exit                     - Exit the shell");
-            println!("  help                     - Show this help message");
-        }
-        Command::Unknown(cmd) => eprintln!("Unknown command: {}", cmd),
-        Command::Empty => (),
-    };
-
-    Ok(())
+        Command::Help => Ok(HELP_MESSAGE.to_string()),
+        Command::Unknown(cmd) => Ok(format!("Unknown command: {}", cmd)),
+        Command::Empty => Ok("".to_string()),
+    }
 }
+
+const HELP_MESSAGE: &str = "\
+Commands:
+  set <type> <key> <value> - Set a key-value pair
+       |
+       └─ <type> can be one of: str, int, float, bool
+  get <key>                - Get the value associated with a key
+  del <key>                - Delete a key-value pair
+  exit                     - Exit the shell
+  help                     - Show this help message";

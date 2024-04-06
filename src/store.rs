@@ -1,4 +1,6 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, sync::Arc};
+
+use tokio::sync::Mutex;
 
 /// A key-value store.
 /// 
@@ -7,11 +9,13 @@ pub struct Store {
     pub map: HashMap<Key, Value>
 }
 
+pub type ArcMutexStore = Arc<Mutex<Store>>;
+
 impl Store {
-    pub fn new() -> Store {
-        Store {
+    pub fn new() -> ArcMutexStore {
+        Arc::new(Mutex::new(Store {
             map: HashMap::new()
-        }
+        }))
     }
 
     /// Sets a key-value pair in the store.
