@@ -27,7 +27,7 @@ async fn main() {
             .unwrap_or_else(|e| panic!("Failed to accept connection\nError: {e}"));
         let store = store.clone();
 
-        tokio::spawn(async move {
+        tokio::spawn(async {
             handle_connection(socket, store).await;
         });
     }
