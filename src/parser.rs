@@ -2,7 +2,10 @@ use std::str::SplitWhitespace;
 
 use strum::EnumIter;
 
-use crate::{parser_utils::{get_type_from_key, parse_raw_value}, store::{Key, Value}};
+use crate::{
+    parser_utils::{get_type_from_key, parse_raw_value, ParseError},
+    store::{Key, Value},
+};
 
 pub enum Command {
     Set(Key, Value),
@@ -19,6 +22,17 @@ pub enum ValueType {
     Int,
     Float,
     Bool,
+}
+
+impl std::fmt::Display for ValueType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ValueType::Str => write!(f, "String"),
+            ValueType::Int => write!(f, "Integer"),
+            ValueType::Float => write!(f, "Float"),
+            ValueType::Bool => write!(f, "Boolean"),
+        }
+    }
 }
 
 pub fn parse_input(input: String) -> Result<Command, String> {
@@ -40,9 +54,9 @@ pub fn parse_input(input: String) -> Result<Command, String> {
 /*                           SET                          */
 /* ------------------------------------------------------ */
 fn parse_set_command(parts: &mut SplitWhitespace<'_>) -> Result<Command, String> {
-    let key = parts.next().ok_or("No key provided")?;
+    let key = parts.next().ok_or(ParseError::MissingKey.to_string())?;
     let r#type = get_type_from_key(key);
-    let raw_value = parts.next().ok_or("No value provided")?;
+    let raw_value = parts.next().ok_or(ParseError::MissingValue.to_string())?;
     let parsed_value = parse_raw_value(raw_value, r#type)?;
 
     Ok(Command::Set(key.to_string(), parsed_value))
@@ -52,7 +66,10 @@ fn parse_set_command(parts: &mut SplitWhitespace<'_>) -> Result<Command, String>
 /*                           GET                          */
 /* ------------------------------------------------------ */
 fn parse_get_command(parts: &mut SplitWhitespace<'_>) -> Result<Command, String> {
-    let key = parts.next().ok_or("No key provided")?.to_string();
+    let key = parts
+        .next()
+        .ok_or(ParseError::MissingKey.to_string())?
+        .to_string();
     Ok(Command::Get(key))
 }
 
@@ -60,7 +77,10 @@ fn parse_get_command(parts: &mut SplitWhitespace<'_>) -> Result<Command, String>
 /*                           DEL                          */
 /* ------------------------------------------------------ */
 fn parse_del_command(parts: &mut SplitWhitespace<'_>) -> Result<Command, String> {
-    let key = parts.next().ok_or("No key provided")?.to_string();
+    let key = parts
+        .next()
+        .ok_or(ParseError::MissingKey.to_string())?
+        .to_string();
     Ok(Command::Del(key))
 }
 
@@ -163,7 +183,7 @@ mod tests {
         let mut parts = "set".split_whitespace();
         parts.next(); // Skip the command
         match parse_set_command(&mut parts) {
-            Err(e) => assert_eq!(e, "No key provided"),
+            Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
             _ => panic!("Expected an error"),
         }
     }
@@ -173,7 +193,7 @@ mod tests {
         let mut parts = "set x".split_whitespace();
         parts.next(); // Skip the command
         match parse_set_command(&mut parts) {
-            Err(e) => assert_eq!(e, "No value provided"),
+            Err(e) => assert_eq!(e, ParseError::MissingValue.to_string()),
             _ => panic!("Expected an error"),
         }
     }
@@ -196,7 +216,7 @@ mod tests {
         let mut parts = "get".split_whitespace();
         parts.next(); // Skip the command
         match parse_get_command(&mut parts) {
-            Err(e) => assert_eq!(e, "No key provided"),
+            Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
             _ => panic!("Expected an error"),
         }
     }
@@ -219,7 +239,7 @@ mod tests {
         let mut parts = "del".split_whitespace();
         parts.next(); // Skip the command
         match parse_del_command(&mut parts) {
-            Err(e) => assert_eq!(e, "No key provided"),
+            Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
             _ => panic!("Expected an error"),
         }
     }

@@ -1,5 +1,23 @@
 use crate::{parser::ValueType, store::Value};
 
+pub enum ParseError {
+    MissingKey,
+    MissingValue,
+    CannotBeParsedAs(String, ValueType),
+}
+
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ParseError::MissingKey => write!(f, "No key provided"),
+            ParseError::MissingValue => write!(f, "No value provided"),
+            ParseError::CannotBeParsedAs(raw_value, to_type) => {
+                write!(f, "{raw_value} cannot be parsed as a ({to_type})")
+            }
+        }
+    }
+}
+
 pub fn get_type_from_key(key: &str) -> ValueType {
     match key.split('-').next() {
         Some(t) => match t.to_lowercase().as_str() {
@@ -16,19 +34,19 @@ pub fn get_type_from_key(key: &str) -> ValueType {
 pub fn parse_raw_value(raw_value: &str, to_type: ValueType) -> Result<Value, String> {
     let parsed = match to_type {
         ValueType::Str => Value::Str(raw_value.to_string()),
-        ValueType::Int => raw_value
-            .parse::<i64>()
-            .map(Value::Int)
-            .map_err(|_| format!("{raw_value} cannot be parsed as an integer"))?,
-        ValueType::Float => raw_value
-            .parse::<f64>()
-            .map(Value::Float)
-            .map_err(|_| format!("{raw_value} cannot be parsed as a float"))?,
+        ValueType::Int => raw_value.parse::<i64>().map(Value::Int).map_err(|_| {
+            ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string()
+        })?,
+        ValueType::Float => raw_value.parse::<f64>().map(Value::Float).map_err(|_| {
+            ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string()
+        })?,
         ValueType::Bool => match raw_value.to_lowercase().as_str() {
             // Also handle boolean value case-insensitively
             "true" => Value::Bool(true),
             "false" => Value::Bool(false),
-            _ => return Err("Invalid boolean value; expected true or false".into()),
+            _ => {
+                return Err(ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string())
+            }
         },
     };
 
@@ -73,7 +91,10 @@ mod tests {
                     assert_eq!(parse_raw_value("42", ValueType::Int), Ok(Value::Int(42)));
                     assert_eq!(
                         parse_raw_value("invalid", ValueType::Int),
-                        Err("invalid cannot be parsed as an integer".into())
+                        Err(
+                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Int)
+                                .to_string()
+                        )
                     );
                 }
                 ValueType::Float => {
@@ -83,7 +104,10 @@ mod tests {
                     );
                     assert_eq!(
                         parse_raw_value("invalid", ValueType::Float),
-                        Err("invalid cannot be parsed as a float".into())
+                        Err(
+                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Float)
+                                .to_string()
+                        )
                     );
                 }
                 ValueType::Bool => {
@@ -98,7 +122,10 @@ mod tests {
 
                     assert_eq!(
                         parse_raw_value("invalid", ValueType::Bool),
-                        Err("Invalid boolean value; expected true or false".into())
+                        Err(
+                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Bool)
+                                .to_string()
+                        )
                     );
                 }
             }
