@@ -1,12 +1,11 @@
-use parser::{parse_input, Command};
-use store::{ArcMutexStore, Store};
+use lib::{
+    parser::{parse_input, Command},
+    store::{ArcMutexStore, Store},
+};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
 };
-
-mod parser;
-mod store;
 
 #[tokio::main]
 async fn main() {

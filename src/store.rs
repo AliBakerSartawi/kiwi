@@ -41,7 +41,7 @@ impl Store {
 
 pub type Key = String;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Value {
     Str(String),
     Int(i64),
