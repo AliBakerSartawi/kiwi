@@ -50,7 +50,9 @@ Note: Some commands might be moved from <span style="color:peachpuff">Will Imple
 
 A type prefix is a suggested naming technique for keys to easily communicate the type of a key's value. If you have a key that's called `int-count`, you know you can safely do `INCR` on it, etc etc.
 
-The syntax is `<type>-<key_name>`
+The syntax is `<type>-<key_name>`.
+
+Let's discuss what the delimiter might be, `-` or `:`, or something else. Using `:` would mean that the store is namespaced by type.
 
 Types are:
 
