@@ -59,8 +59,6 @@ Types are:
 - float (Float)
 - bool (Boolean)
 
-Not specifying a type prefix will default to `str`
-
 Examples:
 
 - ```shell
