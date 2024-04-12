@@ -1,5 +1,5 @@
 use lib::{
-    parser::{parse_input, Command},
+    executer::handle_command,
     store::{ArcMutexStore, Store},
 };
 use tokio::{
@@ -58,35 +58,3 @@ async fn handle_connection(socket: TcpStream, store: ArcMutexStore) {
         }
     }
 }
-
-async fn handle_command(input: String, store: ArcMutexStore) -> Result<String, String> {
-    match parse_input(input)? {
-        Command::Set(key, value) => {
-            store.lock().await.set(key, value);
-            Ok("OK".to_string())
-        }
-        Command::Get(key) => match store.lock().await.get(&key) {
-            Some(value) => Ok(value.to_string()),
-            None => Ok("Key not found".to_string()),
-        },
-        Command::Del(key) => match store.lock().await.del(&key) {
-            Some(value) => Ok(value.to_string()),
-            None => Ok("Key not found".to_string()),
-        },
-        Command::Help => Ok(HELP_MESSAGE.to_string()),
-        Command::Unknown(cmd) => Ok(format!("Unknown command: {}", cmd)),
-        Command::Empty => Ok("".to_string()),
-    }
-}
-
-const HELP_MESSAGE: &str = "\
-Commands:
-  set <type>-<key> <value> - Set a key-value pair
-       |
-       └─ <type> can be one of: str, int, float, bool
-          For example: `set str-name Kiwi`, `set int-age 30`, `set float-pi 3.14`, `set bool-are_kiwis_good true`
-          Not providing a type will default to `str`
-  get <key>                - Get the value associated with a key
-  del <key>                - Delete a key-value pair
-  exit                     - Exit the shell
-  help                     - Show this help message";
