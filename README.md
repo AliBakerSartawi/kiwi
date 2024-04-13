@@ -2,15 +2,15 @@
 
 # Kiwi 🥝
 
-Kiwi is a type-safe key-value in-memory data structure store
+Kiwi is a type-safe key-value in-memory data structure store... maybe even a message broker... maybe even a document database... let's see where we go.
 
 ## Commands
 
-### Redis Commands
+Below is a table of Redis and Kiwi. Commands that have a 🥝 after them are Kiwi-specific. These Kiwi-specific commands are provided for type-safety or performance reasons.
 
 Note: Some commands might be moved from **Will Implement** to _Might Implement_, or vice versa.
 
-Let's discuss if **Kiwi** should be a _superset_ of **Redis**; providing everything in **Redis** and more, or if it should be a _subset_ providing only the core or most-user commands.
+Let's discuss if Kiwi should be a _superset_ of Redis; providing everything in Redis and more, or if it should be a _subset_ providing only the core or most-used Redis commands, along with Kiwi-specific commands.
 
 If we go the _superset_ route, why not even include the **Redis Stack** modules?
 
