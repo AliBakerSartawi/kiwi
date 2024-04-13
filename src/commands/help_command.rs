@@ -4,7 +4,7 @@ pub struct HelpCommand;
 
 impl CommandTrait for HelpCommand {
     fn from_input(_input: String) -> Result<Command, String> {
-        Ok(Command::Help(HelpCommand))
+        Ok(Command::Help(Self))
     }
 
     async fn execute(self, _store: crate::store::ArcMutexStore) -> Result<String, String> {

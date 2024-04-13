@@ -2,6 +2,7 @@ use crate::{parser::ValueType, store::Value};
 
 pub enum ParseError {
     MissingKey,
+    MissingKeys,
     MissingValue,
     CannotBeParsedAs(String, ValueType),
     InvalidType,
@@ -11,6 +12,7 @@ impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             ParseError::MissingKey => write!(f, "No key provided"),
+            ParseError::MissingKeys => write!(f, "No keys provided"),
             ParseError::MissingValue => write!(f, "No value provided"),
             ParseError::CannotBeParsedAs(raw_value, to_type) => {
                 write!(f, "{raw_value} cannot be parsed as a ({to_type})")

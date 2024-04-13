@@ -21,7 +21,7 @@ impl CommandTrait for SetCommand {
         let raw_value = parts.next().ok_or(ParseError::MissingValue.to_string())?;
         let parsed_value = ParserUtils::parse_raw_value(raw_value, r#type)?;
 
-        Ok(Command::Set(SetCommand {
+        Ok(Command::Set(Self {
             key: key.to_string(),
             value: parsed_value,
         }))

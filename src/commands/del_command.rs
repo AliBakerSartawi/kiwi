@@ -16,7 +16,7 @@ impl CommandTrait for DelCommand {
             .ok_or(ParseError::MissingKey.to_string())?
             .to_string();
 
-        Ok(Command::Del(DelCommand {
+        Ok(Command::Del(Self {
             key: key.to_string(),
         }))
     }

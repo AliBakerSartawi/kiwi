@@ -2,11 +2,13 @@ use std::{collections::HashMap, fmt::Display, sync::Arc};
 
 use tokio::sync::Mutex;
 
+pub type Key = String;
+
 /// A key-value store.
-/// 
+///
 /// Methods have names similar to Redis commands, if possible.
 pub struct Store {
-    pub map: HashMap<Key, Value>
+    pub map: HashMap<Key, Value>,
 }
 
 pub type ArcMutexStore = Arc<Mutex<Store>>;
@@ -14,7 +16,7 @@ pub type ArcMutexStore = Arc<Mutex<Store>>;
 impl Store {
     pub fn new() -> ArcMutexStore {
         Arc::new(Mutex::new(Store {
-            map: HashMap::new()
+            map: HashMap::new(),
         }))
     }
 
@@ -24,29 +26,30 @@ impl Store {
     }
 
     /// Gets the value associated with the key.
-    /// 
+    ///
     /// Returns `None` if the key does not exist.
     pub fn get(&self, key: &Key) -> Option<&Value> {
         self.map.get(key)
     }
 
     /// Removes the key-value pair from the store.
-    /// 
+    ///
     /// Returns the value associated with the key, if it exists.
     pub fn del(&mut self, key: &Key) -> Option<Value> {
         self.map.remove(key)
     }
+
+    pub fn del_many(&mut self, keys: Vec<Key>) -> usize {
+        keys.into_iter().filter_map(|key| self.del(&key)).count()
+    }
 }
-
-
-pub type Key = String;
 
 #[derive(Debug, PartialEq)]
 pub enum Value {
     Str(String),
     Int(i64),
     Float(f64),
-    Bool(bool)
+    Bool(bool),
 }
 
 impl Display for Value {

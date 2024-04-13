@@ -16,7 +16,7 @@ impl CommandTrait for GetCommand {
             .ok_or(ParseError::MissingKey.to_string())?
             .to_string();
 
-        Ok(Command::Get(GetCommand {
+        Ok(Command::Get(Self {
             key: key.to_string(),
         }))
     }

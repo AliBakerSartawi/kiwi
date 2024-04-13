@@ -1,8 +1,8 @@
 use strum::EnumIter;
 
 use crate::commands::{
-    del_command::DelCommand, get_command::GetCommand, help_command::HelpCommand,
-    set_command::SetCommand, Command, CommandTrait,
+    del_command::DelCommand, delmany_command::DelManyCommand, get_command::GetCommand,
+    help_command::HelpCommand, set_command::SetCommand, Command, CommandTrait,
 };
 
 pub mod utils;
@@ -32,12 +32,14 @@ impl Parser {
     pub fn parse_input(input: String) -> Result<Command, String> {
         let mut parts = input.trim().split_whitespace();
 
+        // TODO parse the command as an enum
         let command_case_insensitive = parts.next().map(|s| s.to_lowercase());
 
         match command_case_insensitive.as_deref() {
             Some("set") => SetCommand::from_input(input),
             Some("get") => GetCommand::from_input(input),
             Some("del") => DelCommand::from_input(input),
+            Some("delmany") => DelManyCommand::from_input(input),
             Some("help") => HelpCommand::from_input(input),
             Some(cmd) => parse_unknown_command(cmd),
             None => Ok(Command::Empty),
@@ -49,16 +51,10 @@ fn parse_unknown_command(cmd: &str) -> Result<Command, String> {
     Ok(Command::Unknown(cmd.to_string()))
 }
 
-/* ------------------------------------------------------ */
-/*                          Tests                         */
-/* ------------------------------------------------------ */
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /* ------------------------------------------------------ */
-    /*                       parse_input                      */
-    /* ------------------------------------------------------ */
     #[test]
     fn test_parse_input_of_set_command() {
         let input = "set str-x y".to_string();
@@ -83,6 +79,15 @@ mod tests {
         match Parser::parse_input(input) {
             Ok(Command::Del(..)) => (),
             _ => panic!("Expected Command::Del"),
+        }
+    }
+
+    #[test]
+    fn test_parse_input_of_delmany_command() {
+        let input = "delmany x y z".to_string();
+        match Parser::parse_input(input) {
+            Ok(Command::DelMany(..)) => (),
+            _ => panic!("Expected Command::DelMany"),
         }
     }
 
