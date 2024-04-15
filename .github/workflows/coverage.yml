@@ -21,20 +21,26 @@ jobs:
         profile: minimal
         components: rustfmt, clippy
 
-    - name: Install Tarpaulin
-      run: cargo install cargo-tarpaulin
-
-    - name: Run Tarpaulin and Save Output
-      run: cargo tarpaulin > tarpaulin-output.txt
-
-    - name: Upload Tarpaulin Output as Artifact
-      uses: actions/upload-artifact@v3
+    - name: Cache cargo binaries and registry
+      uses: actions/cache@v3
       with:
-        name: tarpaulin-output
-        path: tarpaulin-output.txt
+        path: |
+          ~/.cargo/bin
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Check Coverage
+    - name: Install Tarpaulin
       run: |
+        if ! command -v cargo-tarpaulin &> /dev/null
+        then
+          cargo install cargo-tarpaulin
+        fi
+
+    - name: Run Tarpaulin and Check Coverage
+      run: |
+        cargo tarpaulin -v > tarpaulin-output.txt
         if ! grep -q "100% coverage" tarpaulin-output.txt; then
           echo "Coverage is below 100%"
           exit 1
