@@ -23,6 +23,33 @@ pub enum Command {
     Empty,
 }
 
+/// Used as an interface, not as a trait
+/// 
+/// I'm just afraid that dynamic dispatches might slow things down a little
+/// 
+/// For example, I'm statically dispatching here:
+/// 
+/// ```ignore
+/// match command_case_insensitive.as_deref() {
+///     Some("set") => SetCommand::from_input(input),
+///     Some("get") => GetCommand::from_input(input),
+///     Some("del") => DelCommand::from_input(input),
+///     None => Ok(Command::Empty),
+/// }
+/// ```
+/// 
+/// And here:
+/// 
+/// ```ignore
+/// match Parser::parse_input(input)? {
+///     Command::Set(cmd) => cmd.execute(store).await,
+///     Command::Get(cmd) => cmd.execute(store).await,
+///     Command::Del(cmd) => cmd.execute(store).await,
+///     Command::Empty => Ok("".to_string()),
+/// }
+/// ```
+/// 
+/// It doesn't look the cleanest, but the performance might be worth it
 pub trait CommandTrait {
     fn from_input(input: String) -> Result<Command, String>;
     fn execute(self, store: ArcMutexStore) -> impl Future<Output = Result<String, String>> + Send;
