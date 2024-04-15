@@ -24,11 +24,18 @@ jobs:
     - name: Install Tarpaulin
       run: cargo install cargo-tarpaulin
 
-    - name: Run Tarpaulin and Check Coverage
+    - name: Run Tarpaulin and Save Output
+      run: cargo tarpaulin > tarpaulin-output.txt
+
+    - name: Upload Tarpaulin Output as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: tarpaulin-output
+        path: tarpaulin-output.txt
+
+    - name: Check Coverage
       run: |
-        coverage=$(cargo tarpaulin --out Xml | grep '<coverage line-rate' | sed -n 's/.*"\\([0-9]\\+\\.[0-9]\\+\\)".*/\\1/p')
-        echo "Code coverage is $coverage%"
-        if (( $(echo "$coverage < 1.0" | bc -l) )); then
+        if ! grep -q "100% coverage" tarpaulin-output.txt; then
           echo "Coverage is below 100%"
           exit 1
         fi
