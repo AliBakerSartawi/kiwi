@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        components: rustfmt, clippy
+
+    - name: Install Tarpaulin
+      run: cargo install cargo-tarpaulin
+
+    - name: Run Tarpaulin and Check Coverage
+      run: |
+        coverage=$(cargo tarpaulin --out Xml | grep '<coverage line-rate' | sed -n 's/.*"\\([0-9]\\+\\.[0-9]\\+\\)".*/\\1/p')
+        echo "Code coverage is $coverage%"
+        if (( $(echo "$coverage < 1.0" | bc -l) )); then
+          echo "Coverage is below 100%"
+          exit 1
+        fi
