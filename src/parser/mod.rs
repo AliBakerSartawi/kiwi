@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_set_command() {
-        let input = "set".to_string();
+        let input = "set str-x y".to_string();
         match Parser::parse_input(input) {
             Ok(Command::Set(..)) => (),
             _ => panic!("Expected Command::Set"),
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_get_command() {
-        let input = "get".to_string();
+        let input = "get x".to_string();
         match Parser::parse_input(input) {
             Ok(Command::Get(..)) => (),
             _ => panic!("Expected Command::Get"),
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_del_command() {
-        let input = "del".to_string();
+        let input = "del x".to_string();
         match Parser::parse_input(input) {
             Ok(Command::Del(..)) => (),
             _ => panic!("Expected Command::Del"),
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_delmany_command() {
-        let input = "delmany".to_string();
+        let input = "delmany x y z".to_string();
         match Parser::parse_input(input) {
             Ok(Command::DelMany(..)) => (),
             _ => panic!("Expected Command::DelMany"),
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_touch_command() {
-        let input = "touch".to_string();
+        let input = "touch x".to_string();
         match Parser::parse_input(input) {
             Ok(Command::Touch(..)) => (),
             _ => panic!("Expected Command::Touch"),
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_touchmany_command() {
-        let input = "touchmany".to_string();
+        let input = "touchmany x y z".to_string();
         match Parser::parse_input(input) {
             Ok(Command::TouchMany(..)) => (),
             _ => panic!("Expected Command::TouchMany"),
