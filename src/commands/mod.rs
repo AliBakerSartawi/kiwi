@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, str::SplitWhitespace};
 
 use crate::store::ArcMutexStore;
 
@@ -61,7 +61,7 @@ pub enum CommandWrapper {
 /// - https://users.rust-lang.org/t/performance-implications-of-box-trait-vs-enum-delegation/11957
 ///   - It seems that the enum approach and static dispatch is faster because it is stack-based, whereas the `dyn Trait` or `Box<dyn Trait>` approach is heap-based
 pub trait CommandTrait {
-    // TODO refactor this to be from_parts instead from_input to avoid splitting twice
-    fn from_input(input: String) -> Result<CommandWrapper, String>;
+    /// The parts do not include the command itself
+    fn from_parts(parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String>;
     fn execute(self, store: ArcMutexStore) -> impl Future<Output = Result<String, String>> + Send;
 }

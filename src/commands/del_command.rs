@@ -1,3 +1,5 @@
+use std::str::SplitWhitespace;
+
 use crate::parser::utils::ParseError;
 
 use super::{CommandTrait, CommandWrapper};
@@ -7,10 +9,7 @@ pub struct DelCommand {
 }
 
 impl CommandTrait for DelCommand {
-    fn from_input(input: String) -> Result<CommandWrapper, String> {
-        let mut parts = input.trim().split_whitespace();
-        parts.next(); // Skip the command
-
+    fn from_parts(mut parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
         let key = parts
             .next()
             .ok_or(ParseError::MissingKey.to_string())?
@@ -36,7 +35,9 @@ mod tests {
     #[test]
     fn test_del_command_from_input() {
         let input = "del str-key".to_string();
-        match DelCommand::from_input(input).unwrap() {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match DelCommand::from_parts(parts).unwrap() {
             CommandWrapper::Del(cmd) => {
                 assert_eq!(cmd.key, "str-key");
             }
@@ -47,7 +48,9 @@ mod tests {
     #[test]
     fn test_del_command_from_input_missing_key() {
         let input = "del".to_string();
-        match DelCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match DelCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
             _ => panic!("Expected an error"),
         };

@@ -1,3 +1,5 @@
+use std::str::SplitWhitespace;
+
 use crate::{
     parser::utils::{ParseError, ParserUtils},
     store::Value,
@@ -11,10 +13,7 @@ pub struct SetCommand {
 }
 
 impl CommandTrait for SetCommand {
-    fn from_input(input: String) -> Result<CommandWrapper, String> {
-        let mut parts = input.trim().split_whitespace();
-        parts.next(); // Skip the command
-
+    fn from_parts(mut parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
         let key = parts.next().ok_or(ParseError::MissingKey.to_string())?;
         let type_option = ParserUtils::get_type_from_key(key);
         let r#type = type_option.ok_or(ParseError::InvalidType.to_string())?;
@@ -40,7 +39,9 @@ mod tests {
     #[test]
     fn test_set_command_from_input() {
         let input = "set str-key value".to_string();
-        match SetCommand::from_input(input).unwrap() {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match SetCommand::from_parts(parts).unwrap() {
             CommandWrapper::Set(cmd) => {
                 assert_eq!(cmd.key, "str-key");
                 assert_eq!(cmd.value, Value::Str("value".to_string()));
@@ -52,7 +53,9 @@ mod tests {
     #[test]
     fn test_set_command_from_input_missing_key() {
         let input = "set".to_string();
-        match SetCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match SetCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
             _ => panic!("Expected an error"),
         };
@@ -61,7 +64,9 @@ mod tests {
     #[test]
     fn test_set_command_from_input_missing_value() {
         let input = "set str-key".to_string();
-        match SetCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match SetCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::MissingValue.to_string()),
             _ => panic!("Expected an error"),
         };
@@ -70,7 +75,9 @@ mod tests {
     #[test]
     fn test_set_command_from_input_invalid_type() {
         let input = "set x-key 123".to_string();
-        match SetCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match SetCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::InvalidType.to_string()),
             _ => panic!("Expected an error"),
         };
@@ -79,7 +86,9 @@ mod tests {
     #[test]
     fn test_set_command_from_input_missing_type() {
         let input = "set key value".to_string();
-        match SetCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match SetCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::InvalidType.to_string()),
             _ => panic!("Expected an error"),
         };

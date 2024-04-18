@@ -1,9 +1,11 @@
+use std::str::SplitWhitespace;
+
 use super::{CommandTrait, CommandWrapper};
 
 pub struct HelpCommand;
 
 impl CommandTrait for HelpCommand {
-    fn from_input(_input: String) -> Result<CommandWrapper, String> {
+    fn from_parts(_parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
         Ok(CommandWrapper::Help(Self))
     }
 
@@ -30,7 +32,9 @@ mod tests {
     #[test]
     fn test_help_command_from_input() {
         let input = "help".to_string();
-        match HelpCommand::from_input(input).unwrap() {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match HelpCommand::from_parts(parts).unwrap() {
             CommandWrapper::Help(_cmd) => (),
             _ => panic!("Expected a Help command"),
         };

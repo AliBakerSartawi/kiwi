@@ -36,13 +36,13 @@ impl Parser {
         let command_case_insensitive = parts.next().map(|s| s.to_lowercase());
 
         match command_case_insensitive.as_deref() {
-            Some("set") => SetCommand::from_input(input),
-            Some("get") => GetCommand::from_input(input),
-            Some("del") => DelCommand::from_input(input),
-            Some("delmany") => DelManyCommand::from_input(input),
-            Some("touch") => TouchCommand::from_input(input),
-            Some("touchmany") => TouchManyCommand::from_input(input),
-            Some("help") => HelpCommand::from_input(input),
+            Some("set") => SetCommand::from_parts(parts),
+            Some("get") => GetCommand::from_parts(parts),
+            Some("del") => DelCommand::from_parts(parts),
+            Some("delmany") => DelManyCommand::from_parts(parts),
+            Some("touch") => TouchCommand::from_parts(parts),
+            Some("touchmany") => TouchManyCommand::from_parts(parts),
+            Some("help") => HelpCommand::from_parts(parts),
             Some(cmd) => parse_unknown_command(cmd),
             None => Ok(CommandWrapper::Empty),
         }

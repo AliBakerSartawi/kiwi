@@ -1,3 +1,5 @@
+use std::str::SplitWhitespace;
+
 use crate::parser::utils::ParseError;
 
 use super::{CommandTrait, CommandWrapper};
@@ -7,10 +9,7 @@ pub struct TouchManyCommand {
 }
 
 impl CommandTrait for TouchManyCommand {
-    fn from_input(input: String) -> Result<CommandWrapper, String> {
-        let mut parts = input.trim().split_whitespace();
-        parts.next(); // Skip the command
-
+    fn from_parts(parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
         let keys = parts.map(|s| s.to_string()).collect::<Vec<String>>();
 
         if keys.is_empty() {
@@ -32,7 +31,9 @@ mod tests {
     #[test]
     fn test_touchmany_command_from_input() {
         let input = "touchmany str-x str-y".to_string();
-        match TouchManyCommand::from_input(input).unwrap() {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match TouchManyCommand::from_parts(parts).unwrap() {
             CommandWrapper::TouchMany(cmd) => {
                 assert_eq!(cmd.keys, vec!["str-x", "str-y"]);
             }
@@ -43,7 +44,9 @@ mod tests {
     #[test]
     fn test_touchmany_command_from_input_missing_keys() {
         let input = "touchmany".to_string();
-        match TouchManyCommand::from_input(input) {
+        let mut parts = input.split_whitespace();
+        parts.next(); // Skip the command
+        match TouchManyCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::MissingKeys.to_string()),
             _ => panic!("Expected an error"),
         };
