@@ -1,10 +1,10 @@
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct HelpCommand;
 
 impl CommandTrait for HelpCommand {
-    fn from_input(_input: String) -> Result<Command, String> {
-        Ok(Command::Help(Self))
+    fn from_input(_input: String) -> Result<CommandWrapper, String> {
+        Ok(CommandWrapper::Help(Self))
     }
 
     async fn execute(self, _store: crate::store::ArcMutexStore) -> Result<String, String> {
@@ -31,7 +31,7 @@ mod tests {
     fn test_help_command_from_input() {
         let input = "help".to_string();
         match HelpCommand::from_input(input).unwrap() {
-            Command::Help(_cmd) => (),
+            CommandWrapper::Help(_cmd) => (),
             _ => panic!("Expected a Help command"),
         };
     }

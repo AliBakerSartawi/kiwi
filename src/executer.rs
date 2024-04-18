@@ -1,19 +1,19 @@
 use crate::{
-    commands::{Command, CommandTrait},
+    commands::{CommandTrait, CommandWrapper},
     parser::Parser,
     store::ArcMutexStore,
 };
 
 pub async fn handle_command(input: String, store: ArcMutexStore) -> Result<String, String> {
     match Parser::parse_input(input)? {
-        Command::Set(cmd) => cmd.execute(store).await,
-        Command::Get(cmd) => cmd.execute(store).await,
-        Command::Del(cmd) => cmd.execute(store).await,
-        Command::DelMany(cmd) => cmd.execute(store).await,
-        Command::Touch(cmd) => cmd.execute(store).await,
-        Command::TouchMany(cmd) => cmd.execute(store).await,
-        Command::Help(cmd) => cmd.execute(store).await,
-        Command::Unknown(cmd) => Ok(format!("Unknown command: {}", cmd)),
-        Command::Empty => Ok("".to_string()),
+        CommandWrapper::Set(cmd) => cmd.execute(store).await,
+        CommandWrapper::Get(cmd) => cmd.execute(store).await,
+        CommandWrapper::Del(cmd) => cmd.execute(store).await,
+        CommandWrapper::DelMany(cmd) => cmd.execute(store).await,
+        CommandWrapper::Touch(cmd) => cmd.execute(store).await,
+        CommandWrapper::TouchMany(cmd) => cmd.execute(store).await,
+        CommandWrapper::Help(cmd) => cmd.execute(store).await,
+        CommandWrapper::Unknown(cmd) => Ok(format!("Unknown command: {}", cmd)),
+        CommandWrapper::Empty => Ok("".to_string()),
     }
 }

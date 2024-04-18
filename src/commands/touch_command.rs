@@ -1,13 +1,13 @@
 use crate::parser::utils::ParseError;
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct TouchCommand {
     pub key: String,
 }
 
 impl CommandTrait for TouchCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -16,7 +16,7 @@ impl CommandTrait for TouchCommand {
             .ok_or(ParseError::MissingKey.to_string())?
             .to_string();
 
-        Ok(Command::Touch(Self {
+        Ok(CommandWrapper::Touch(Self {
             key: key.to_string(),
         }))
     }
@@ -34,7 +34,7 @@ mod tests {
     fn test_touch_command_from_input() {
         let input = "touch str-key".to_string();
         match TouchCommand::from_input(input).unwrap() {
-            Command::Touch(cmd) => {
+            CommandWrapper::Touch(cmd) => {
                 assert_eq!(cmd.key, "str-key");
             }
             _ => panic!("Expected a Touch command"),

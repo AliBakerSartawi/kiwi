@@ -1,13 +1,13 @@
 use crate::parser::utils::ParseError;
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct TouchManyCommand {
     pub keys: Vec<String>,
 }
 
 impl CommandTrait for TouchManyCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -17,7 +17,7 @@ impl CommandTrait for TouchManyCommand {
             return Err(ParseError::MissingKeys.to_string());
         }
 
-        Ok(Command::TouchMany(Self { keys }))
+        Ok(CommandWrapper::TouchMany(Self { keys }))
     }
 
     async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
@@ -33,7 +33,7 @@ mod tests {
     fn test_touchmany_command_from_input() {
         let input = "touchmany str-x str-y".to_string();
         match TouchManyCommand::from_input(input).unwrap() {
-            Command::TouchMany(cmd) => {
+            CommandWrapper::TouchMany(cmd) => {
                 assert_eq!(cmd.keys, vec!["str-x", "str-y"]);
             }
             _ => panic!("Expected a TouchMany command"),

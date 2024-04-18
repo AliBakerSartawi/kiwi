@@ -1,13 +1,13 @@
 use crate::parser::utils::ParseError;
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct DelCommand {
     pub key: String,
 }
 
 impl CommandTrait for DelCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -16,7 +16,7 @@ impl CommandTrait for DelCommand {
             .ok_or(ParseError::MissingKey.to_string())?
             .to_string();
 
-        Ok(Command::Del(Self {
+        Ok(CommandWrapper::Del(Self {
             key: key.to_string(),
         }))
     }
@@ -37,7 +37,7 @@ mod tests {
     fn test_del_command_from_input() {
         let input = "del str-key".to_string();
         match DelCommand::from_input(input).unwrap() {
-            Command::Del(cmd) => {
+            CommandWrapper::Del(cmd) => {
                 assert_eq!(cmd.key, "str-key");
             }
             _ => panic!("Expected a Del command"),

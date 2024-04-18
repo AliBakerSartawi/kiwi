@@ -1,13 +1,13 @@
 use crate::parser::utils::ParseError;
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct GetCommand {
     pub key: String,
 }
 
 impl CommandTrait for GetCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -16,7 +16,7 @@ impl CommandTrait for GetCommand {
             .ok_or(ParseError::MissingKey.to_string())?
             .to_string();
 
-        Ok(Command::Get(Self {
+        Ok(CommandWrapper::Get(Self {
             key: key.to_string(),
         }))
     }
@@ -37,7 +37,7 @@ mod tests {
     fn test_get_command_from_input() {
         let input = "get str-key".to_string();
         match GetCommand::from_input(input).unwrap() {
-            Command::Get(cmd) => {
+            CommandWrapper::Get(cmd) => {
                 assert_eq!(cmd.key, "str-key");
             }
             _ => panic!("Expected a Get command"),

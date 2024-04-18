@@ -1,13 +1,13 @@
 use crate::parser::utils::ParseError;
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct DelManyCommand {
     pub keys: Vec<String>,
 }
 
 impl CommandTrait for DelManyCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -17,7 +17,7 @@ impl CommandTrait for DelManyCommand {
             return Err(ParseError::MissingKeys.to_string());
         }
 
-        Ok(Command::DelMany(Self { keys }))
+        Ok(CommandWrapper::DelMany(Self { keys }))
     }
 
     async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
@@ -33,7 +33,7 @@ mod tests {
     fn test_delmany_command_from_input() {
         let input = "delmany str-x str-y".to_string();
         match DelManyCommand::from_input(input).unwrap() {
-            Command::DelMany(cmd) => {
+            CommandWrapper::DelMany(cmd) => {
                 assert_eq!(cmd.keys, vec!["str-x", "str-y"]);
             }
             _ => panic!("Expected a DelMany command"),

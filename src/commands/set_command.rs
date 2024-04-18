@@ -3,7 +3,7 @@ use crate::{
     store::Value,
 };
 
-use super::{Command, CommandTrait};
+use super::{CommandTrait, CommandWrapper};
 
 pub struct SetCommand {
     pub key: String,
@@ -11,7 +11,7 @@ pub struct SetCommand {
 }
 
 impl CommandTrait for SetCommand {
-    fn from_input(input: String) -> Result<Command, String> {
+    fn from_input(input: String) -> Result<CommandWrapper, String> {
         let mut parts = input.trim().split_whitespace();
         parts.next(); // Skip the command
 
@@ -21,7 +21,7 @@ impl CommandTrait for SetCommand {
         let raw_value = parts.next().ok_or(ParseError::MissingValue.to_string())?;
         let parsed_value = ParserUtils::parse_raw_value(raw_value, r#type)?;
 
-        Ok(Command::Set(Self {
+        Ok(CommandWrapper::Set(Self {
             key: key.to_string(),
             value: parsed_value,
         }))
@@ -41,7 +41,7 @@ mod tests {
     fn test_set_command_from_input() {
         let input = "set str-key value".to_string();
         match SetCommand::from_input(input).unwrap() {
-            Command::Set(cmd) => {
+            CommandWrapper::Set(cmd) => {
                 assert_eq!(cmd.key, "str-key");
                 assert_eq!(cmd.value, Value::Str("value".to_string()));
             }
