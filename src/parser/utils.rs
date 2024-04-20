@@ -1,14 +1,16 @@
 use crate::{parser::ValueType, store::Value};
 
-pub enum ParseError {
+pub enum ParseError<'a> {
     MissingKey,
     MissingKeys,
     MissingValue,
-    CannotBeParsedAs(String, ValueType),
+    CannotBeParsedAs(&'a str, ValueType),
     InvalidType,
+    InvalidCommandOptions(&'a str),
+    InvalidCommandOptionValue(&'a str),
 }
 
-impl std::fmt::Display for ParseError {
+impl <'a> std::fmt::Display for ParseError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             ParseError::MissingKey => write!(f, "No key provided"),
@@ -18,6 +20,10 @@ impl std::fmt::Display for ParseError {
                 write!(f, "{raw_value} cannot be parsed as a ({to_type})")
             }
             ParseError::InvalidType => write!(f, "Invalid type provided"),
+            ParseError::InvalidCommandOptions(msg) => write!(f, "Invalid command options: {msg}"),
+            ParseError::InvalidCommandOptionValue(msg) => {
+                write!(f, "Invalid command option value: {msg}")
+            }
         }
     }
 }
@@ -42,10 +48,10 @@ impl ParserUtils {
         let parsed = match to_type {
             ValueType::Str => Value::Str(raw_value.to_string()),
             ValueType::Int => raw_value.parse::<i64>().map(Value::Int).map_err(|_| {
-                ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string()
+                ParseError::CannotBeParsedAs(raw_value, to_type).to_string()
             })?,
             ValueType::Float => raw_value.parse::<f64>().map(Value::Float).map_err(|_| {
-                ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string()
+                ParseError::CannotBeParsedAs(raw_value, to_type).to_string()
             })?,
             ValueType::Bool => match raw_value.to_lowercase().as_str() {
                 // Also handle boolean value case-insensitively
@@ -53,7 +59,7 @@ impl ParserUtils {
                 "false" => Value::Bool(false),
                 _ => {
                     return Err(
-                        ParseError::CannotBeParsedAs(raw_value.to_string(), to_type).to_string()
+                        ParseError::CannotBeParsedAs(raw_value, to_type).to_string()
                     )
                 }
             },
@@ -121,7 +127,7 @@ mod tests {
                     assert_eq!(
                         ParserUtils::parse_raw_value("invalid", ValueType::Int),
                         Err(
-                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Int)
+                            ParseError::CannotBeParsedAs("invalid", ValueType::Int)
                                 .to_string()
                         )
                     );
@@ -134,7 +140,7 @@ mod tests {
                     assert_eq!(
                         ParserUtils::parse_raw_value("invalid", ValueType::Float),
                         Err(
-                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Float)
+                            ParseError::CannotBeParsedAs("invalid", ValueType::Float)
                                 .to_string()
                         )
                     );
@@ -152,7 +158,7 @@ mod tests {
                     assert_eq!(
                         ParserUtils::parse_raw_value("invalid", ValueType::Bool),
                         Err(
-                            ParseError::CannotBeParsedAs("invalid".to_string(), ValueType::Bool)
+                            ParseError::CannotBeParsedAs("invalid", ValueType::Bool)
                                 .to_string()
                         )
                     );
