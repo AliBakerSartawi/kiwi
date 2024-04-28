@@ -16,10 +16,7 @@ impl CommandTrait for HelpCommand {
 
 const HELP_MESSAGE: &str = "\
 Commands:
-  set <type>-<key> <value> - Set a key-value pair
-       |
-       └─ <type> can be one of: str, int, float, bool
-          For example: `set str-name Kiwi`, `set int-age 30`, `set float-pi 3.14`, `set bool-are_kiwis_good true`
+  set <key> <value>        - Set a key-value pair
   get <key>                - Get the value associated with a key
   del <key>                - Delete a key-value pair
   exit                     - Exit the shell

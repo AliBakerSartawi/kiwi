@@ -94,9 +94,6 @@ impl Store {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Str(String),
-    Int(i64),
-    Float(f64),
-    Bool(bool),
 }
 
 // TODO: refactor this to `toResp3` and `toResp2` instead of `to_string`
@@ -104,9 +101,6 @@ impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Str(s) => write!(f, "str {}", s),
-            Value::Int(i) => write!(f, "int {}", i),
-            Value::Float(fl) => write!(f, "float {}", fl),
-            Value::Bool(b) => write!(f, "bool {}", b),
         }
     }
 }

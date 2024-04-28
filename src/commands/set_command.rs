@@ -1,9 +1,6 @@
 use std::str::SplitWhitespace;
 
-use crate::{
-    parser::utils::{ParseError, ParserUtils},
-    store::Value,
-};
+use crate::{parser::utils::ParseError, store::Value};
 
 use super::{CommandTrait, CommandWrapper};
 
@@ -79,16 +76,13 @@ pub struct SetCommand {
 impl CommandTrait for SetCommand {
     fn from_parts(mut parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
         let key = parts.next().ok_or(ParseError::MissingKey.to_string())?;
-        let type_option = ParserUtils::get_type_from_key(key);
-        let r#type = type_option.ok_or(ParseError::InvalidType.to_string())?;
-        let raw_value = parts.next().ok_or(ParseError::MissingValue.to_string())?;
-        let parsed_value = ParserUtils::parse_raw_value(raw_value, r#type)?;
+        let value = parts.next().ok_or(ParseError::MissingValue.to_string())?;
 
         let options = SetCommandOptions::get_options_from_parts(&mut parts)?;
 
         Ok(CommandWrapper::Set(Self {
             key: key.to_string(),
-            value: parsed_value,
+            value: Value::Str(value.to_string()),
             options,
         }))
     }
@@ -136,28 +130,6 @@ mod tests {
         parts.next(); // Skip the command
         match SetCommand::from_parts(parts) {
             Err(e) => assert_eq!(e, ParseError::MissingValue.to_string()),
-            _ => panic!("Expected an error"),
-        };
-    }
-
-    #[test]
-    fn test_set_command_from_input_invalid_type() {
-        let input = "set x-key 123".to_string();
-        let mut parts = input.split_whitespace();
-        parts.next(); // Skip the command
-        match SetCommand::from_parts(parts) {
-            Err(e) => assert_eq!(e, ParseError::InvalidType.to_string()),
-            _ => panic!("Expected an error"),
-        };
-    }
-
-    #[test]
-    fn test_set_command_from_input_missing_type() {
-        let input = "set key value".to_string();
-        let mut parts = input.split_whitespace();
-        parts.next(); // Skip the command
-        match SetCommand::from_parts(parts) {
-            Err(e) => assert_eq!(e, ParseError::InvalidType.to_string()),
             _ => panic!("Expected an error"),
         };
     }

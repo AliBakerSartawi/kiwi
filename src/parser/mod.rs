@@ -1,5 +1,3 @@
-use strum::EnumIter;
-
 use crate::commands::{
     del_command::DelCommand, delmany_command::DelManyCommand, get_command::GetCommand,
     help_command::HelpCommand, set_command::SetCommand, touch_command::TouchCommand,
@@ -7,25 +5,6 @@ use crate::commands::{
 };
 
 pub mod utils;
-
-#[derive(Debug, PartialEq, EnumIter)]
-pub enum ValueType {
-    Str,
-    Int,
-    Float,
-    Bool,
-}
-
-impl std::fmt::Display for ValueType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            ValueType::Str => write!(f, "String"),
-            ValueType::Int => write!(f, "Integer"),
-            ValueType::Float => write!(f, "Float"),
-            ValueType::Bool => write!(f, "Boolean"),
-        }
-    }
-}
 
 pub struct Parser;
 
