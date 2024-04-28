@@ -20,9 +20,9 @@ impl CommandTrait for GetCommand {
         }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
-        match store.lock().await.get(&self.key) {
-            Some(value) => Ok(value.to_string()),
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
+        match store.get(&self.key) {
+            Some(response) => Ok(response),
             None => Ok("Key not found".to_string()),
         }
     }

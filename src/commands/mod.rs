@@ -1,6 +1,6 @@
 use std::{future::Future, str::SplitWhitespace};
 
-use crate::store::ArcMutexStore;
+use crate::store::ConcurrentStore;
 
 use self::{
     del_command::DelCommand, delmany_command::DelManyCommand, get_command::GetCommand,
@@ -63,5 +63,6 @@ pub enum CommandWrapper {
 pub trait CommandTrait {
     /// The parts do not include the command itself
     fn from_parts(parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String>;
-    fn execute(self, store: ArcMutexStore) -> impl Future<Output = Result<String, String>> + Send;
+    fn execute(self, store: ConcurrentStore)
+        -> impl Future<Output = Result<String, String>> + Send;
 }

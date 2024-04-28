@@ -20,8 +20,8 @@ impl CommandTrait for DelCommand {
         }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
-        match store.lock().await.del(&self.key) {
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
+        match store.del(&self.key) {
             Some(value) => Ok(value.to_string()),
             None => Ok("Key not found".to_string()),
         }

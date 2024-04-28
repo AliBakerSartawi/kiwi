@@ -9,7 +9,7 @@ impl CommandTrait for HelpCommand {
         Ok(CommandWrapper::Help(Self))
     }
 
-    async fn execute(self, _store: crate::store::ArcMutexStore) -> Result<String, String> {
+    async fn execute(self, _store: crate::store::ConcurrentStore) -> Result<String, String> {
         Ok(HELP_MESSAGE.to_string())
     }
 }

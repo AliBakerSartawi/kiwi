@@ -1,10 +1,10 @@
 use crate::{
     commands::{CommandTrait, CommandWrapper},
     parser::Parser,
-    store::ArcMutexStore,
+    store::ConcurrentStore,
 };
 
-pub async fn handle_command(input: String, store: ArcMutexStore) -> Result<String, String> {
+pub async fn handle_command(input: String, store: ConcurrentStore) -> Result<String, String> {
     match Parser::parse_input(input)? {
         CommandWrapper::Set(cmd) => cmd.execute(store).await,
         CommandWrapper::Get(cmd) => cmd.execute(store).await,

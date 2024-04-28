@@ -19,8 +19,8 @@ impl CommandTrait for DelManyCommand {
         Ok(CommandWrapper::DelMany(Self { keys }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
-        Ok(store.lock().await.del_many(self.keys).to_string())
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
+        Ok(store.del_many(self.keys).to_string())
     }
 }
 

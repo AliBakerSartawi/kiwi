@@ -20,8 +20,8 @@ impl CommandTrait for TouchCommand {
         }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
-        Ok(store.lock().await.touch(&self.key).to_string())
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
+        Ok(store.touch(&self.key).to_string())
     }
 }
 

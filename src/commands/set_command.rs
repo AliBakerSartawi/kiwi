@@ -93,9 +93,9 @@ impl CommandTrait for SetCommand {
         }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
         // TODO: Implement executing the options
-        store.lock().await.set(self.key, self.value);
+        store.set(self.key, self.value);
         Ok("OK".to_string())
     }
 }

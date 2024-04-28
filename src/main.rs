@@ -1,6 +1,6 @@
 use lib::{
     executer::handle_command,
-    store::{ArcMutexStore, Store},
+    store::{ConcurrentStore, Store},
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -30,9 +30,10 @@ async fn main() {
             handle_connection(socket, store).await;
         });
     }
+
 }
 
-async fn handle_connection(socket: TcpStream, store: ArcMutexStore) {
+async fn handle_connection(socket: TcpStream, store: ConcurrentStore) {
     let (mut reader, mut writer) = tokio::io::split(socket);
 
     loop {

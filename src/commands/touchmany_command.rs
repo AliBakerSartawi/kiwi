@@ -19,8 +19,8 @@ impl CommandTrait for TouchManyCommand {
         Ok(CommandWrapper::TouchMany(Self { keys }))
     }
 
-    async fn execute(self, store: crate::store::ArcMutexStore) -> Result<String, String> {
-        Ok(store.lock().await.touch_many(self.keys).to_string())
+    async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
+        Ok(store.touch_many(self.keys).to_string())
     }
 }
 

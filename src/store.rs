@@ -1,6 +1,24 @@
-use std::{collections::HashMap, fmt::Display, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    fmt::Display,
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
-use tokio::sync::Mutex;
+use scc::HashMap;
+
+use ahash::AHasher;
+use std::hash::BuildHasher;
+
+// Define a BuildHasher that uses ahash
+pub struct AHashBuilder;
+
+impl BuildHasher for AHashBuilder {
+    type Hasher = AHasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        AHasher::default() // Use some fixed seeds
+    }
+}
 
 pub type Key = String;
 
@@ -8,61 +26,72 @@ pub type Key = String;
 ///
 /// Methods have names similar to Redis commands, if possible.
 pub struct Store {
-    pub map: HashMap<Key, Data>,
+    /// Why chose scc::HashMap with ahash instead of DashMap
+    /// https://github.com/wvwwvwwv/conc-map-bench?tab=readme-ov-file
+    pub map: HashMap<Key, Data, AHashBuilder>,
 }
 
-pub type ArcMutexStore = Arc<Mutex<Store>>;
+pub type ConcurrentStore = Arc<Store>;
 
 impl Store {
-    pub fn new() -> ArcMutexStore {
-        Arc::new(Mutex::new(Store {
-            map: HashMap::new(),
-        }))
+    pub fn new() -> ConcurrentStore {
+        Arc::new(Store {
+            map: HashMap::with_hasher(AHashBuilder),
+        })
     }
 
     /// Touches a key, updating its last accessed time.
-    /// 
+    ///
     /// This is useful for implementing LRU cache eviction.
-    pub fn touch(&mut self, key: &Key) -> usize {
-        if let Some(v) = self.map.get_mut(key) {
-            v.last_accessed = current_epoch_millis();
-            v.times_accessed += 1;
+    pub fn touch(&self, key: &Key) -> usize {
+        if let Some(mut entry) = self.map.get(key) {
+            let data = entry.get_mut();
+            data.last_accessed = current_epoch_millis();
+            data.times_accessed += 1;
             return 1;
         }
         0
     }
 
-    pub fn touch_many(&mut self, keys: Vec<Key>) -> usize {
+    pub fn touch_many(&self, keys: Vec<Key>) -> usize {
         keys.into_iter().map(|key| self.touch(&key)).sum()
     }
 
     /// Sets a key-value pair in the store.
-    pub fn set(&mut self, key: Key, value: Value) {
-        self.touch(&key);
-        self.map.insert(key, Data::new(value));
+    pub fn set(&self, key: Key, value: Value) {
+        if self.map.contains(&key) {
+            // TODO optimize by moving the touch logic inside the update below to avoid multiple lookups
+            self.touch(&key);
+            self.map.update(&key, |_, data| {
+                data.value = value;
+            });
+        } else {
+            // TODO handle Result here
+            let _ = self.map.insert(key, Data::new(value));
+        }
     }
 
     /// Gets the value associated with the key.
     ///
     /// Returns `None` if the key does not exist.
-    pub fn get(&mut self, key: &Key) -> Option<&Value> {
+    pub fn get(&self, key: &Key) -> Option<String> {
         self.touch(&key);
-        self.map.get(key).map(|v| &v.value)
+        self.map.read(key, |_, data| data.value.to_string())
     }
 
     /// Removes the key-value pair from the store.
     ///
     /// Returns the value associated with the key, if it exists.
-    pub fn del(&mut self, key: &Key) -> Option<Value> {
-        self.map.remove(key).map(|v| v.value)
+    pub fn del(&self, key: &Key) -> Option<Value> {
+        self.map.remove(key).map(|v| v.1.value)
     }
 
-    pub fn del_many(&mut self, keys: Vec<Key>) -> usize {
+    pub fn del_many(&self, keys: Vec<Key>) -> usize {
         keys.into_iter().filter_map(|key| self.del(&key)).count()
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Str(String),
     Int(i64),
@@ -70,6 +99,7 @@ pub enum Value {
     Bool(bool),
 }
 
+// TODO: refactor this to `toResp3` and `toResp2` instead of `to_string`
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -81,6 +111,7 @@ impl Display for Value {
     }
 }
 
+#[derive(Clone)]
 pub struct Data {
     pub value: Value,
     pub last_accessed: u128, // Milliseconds since UNIX epoch
