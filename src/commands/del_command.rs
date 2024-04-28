@@ -5,26 +5,22 @@ use crate::parser::utils::ParseError;
 use super::{CommandTrait, CommandWrapper};
 
 pub struct DelCommand {
-    pub key: String,
+    pub keys: Vec<String>,
 }
 
 impl CommandTrait for DelCommand {
-    fn from_parts(mut parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
-        let key = parts
-            .next()
-            .ok_or(ParseError::MissingKey.to_string())?
-            .to_string();
+    fn from_parts(parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
+        let keys = parts.map(|s| s.to_string()).collect::<Vec<String>>();
 
-        Ok(CommandWrapper::Del(Self {
-            key: key.to_string(),
-        }))
+        if keys.is_empty() {
+            return Err(ParseError::MissingKeys.to_string());
+        }
+
+        Ok(CommandWrapper::Del(Self { keys }))
     }
 
     async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
-        match store.del(&self.key) {
-            Some(value) => Ok(value.to_string()),
-            None => Ok("Key not found".to_string()),
-        }
+        Ok(store.del_many(self.keys).to_string())
     }
 }
 
@@ -34,24 +30,24 @@ mod tests {
 
     #[test]
     fn test_del_command_from_input() {
-        let input = "del str-key".to_string();
+        let input = "del x y".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match DelCommand::from_parts(parts).unwrap() {
             CommandWrapper::Del(cmd) => {
-                assert_eq!(cmd.key, "str-key");
+                assert_eq!(cmd.keys, vec!["x", "y"]);
             }
             _ => panic!("Expected a Del command"),
         };
     }
 
     #[test]
-    fn test_del_command_from_input_missing_key() {
+    fn test_del_command_from_input_missing_keys() {
         let input = "del".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match DelCommand::from_parts(parts) {
-            Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
+            Err(e) => assert_eq!(e, ParseError::MissingKeys.to_string()),
             _ => panic!("Expected an error"),
         };
     }

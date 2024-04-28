@@ -86,6 +86,7 @@ impl Store {
         self.map.remove(key).map(|v| v.1.value)
     }
 
+    // TODO: optimize by checking if multiple keys can be deleted at once instead of iterating
     pub fn del_many(&self, keys: Vec<Key>) -> usize {
         keys.into_iter().filter_map(|key| self.del(&key)).count()
     }

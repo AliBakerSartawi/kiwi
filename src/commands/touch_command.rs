@@ -5,23 +5,22 @@ use crate::parser::utils::ParseError;
 use super::{CommandTrait, CommandWrapper};
 
 pub struct TouchCommand {
-    pub key: String,
+    pub keys: Vec<String>,
 }
 
 impl CommandTrait for TouchCommand {
-    fn from_parts(mut parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
-        let key = parts
-            .next()
-            .ok_or(ParseError::MissingKey.to_string())?
-            .to_string();
+    fn from_parts(parts: SplitWhitespace<'_>) -> Result<CommandWrapper, String> {
+        let keys = parts.map(|s| s.to_string()).collect::<Vec<String>>();
 
-        Ok(CommandWrapper::Touch(Self {
-            key: key.to_string(),
-        }))
+        if keys.is_empty() {
+            return Err(ParseError::MissingKeys.to_string());
+        }
+
+        Ok(CommandWrapper::Touch(Self { keys }))
     }
 
     async fn execute(self, store: crate::store::ConcurrentStore) -> Result<String, String> {
-        Ok(store.touch(&self.key).to_string())
+        Ok(store.touch_many(self.keys).to_string())
     }
 }
 
@@ -31,24 +30,24 @@ mod tests {
 
     #[test]
     fn test_touch_command_from_input() {
-        let input = "touch str-key".to_string();
+        let input = "touch x y".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match TouchCommand::from_parts(parts).unwrap() {
             CommandWrapper::Touch(cmd) => {
-                assert_eq!(cmd.key, "str-key");
+                assert_eq!(cmd.keys, vec!["x", "y"]);
             }
             _ => panic!("Expected a Touch command"),
         };
     }
 
     #[test]
-    fn test_touch_command_from_input_missing_key() {
+    fn test_touch_command_from_input_missing_keys() {
         let input = "touch".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match TouchCommand::from_parts(parts) {
-            Err(e) => assert_eq!(e, ParseError::MissingKey.to_string()),
+            Err(e) => assert_eq!(e, ParseError::MissingKeys.to_string()),
             _ => panic!("Expected an error"),
         };
     }

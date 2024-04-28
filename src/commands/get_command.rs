@@ -34,12 +34,12 @@ mod tests {
 
     #[test]
     fn test_get_command_from_input() {
-        let input = "get str-key".to_string();
+        let input = "get key".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match GetCommand::from_parts(parts).unwrap() {
             CommandWrapper::Get(cmd) => {
-                assert_eq!(cmd.key, "str-key");
+                assert_eq!(cmd.key, "key");
             }
             _ => panic!("Expected a Get command"),
         };

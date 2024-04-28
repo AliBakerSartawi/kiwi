@@ -1,7 +1,6 @@
 use crate::commands::{
-    del_command::DelCommand, delmany_command::DelManyCommand, get_command::GetCommand,
-    help_command::HelpCommand, set_command::SetCommand, touch_command::TouchCommand,
-    touchmany_command::TouchManyCommand, CommandTrait, CommandWrapper,
+    del_command::DelCommand, get_command::GetCommand, help_command::HelpCommand,
+    set_command::SetCommand, touch_command::TouchCommand, CommandTrait, CommandWrapper,
 };
 
 pub mod utils;
@@ -18,9 +17,7 @@ impl Parser {
             Some("set") => SetCommand::from_parts(parts),
             Some("get") => GetCommand::from_parts(parts),
             Some("del") => DelCommand::from_parts(parts),
-            Some("delmany") => DelManyCommand::from_parts(parts),
             Some("touch") => TouchCommand::from_parts(parts),
-            Some("touchmany") => TouchManyCommand::from_parts(parts),
             Some("help") => HelpCommand::from_parts(parts),
             Some(cmd) => parse_unknown_command(cmd),
             None => Ok(CommandWrapper::Empty),
@@ -38,7 +35,7 @@ mod tests {
 
     #[test]
     fn test_parse_input_of_set_command() {
-        let input = "set str-x y".to_string();
+        let input = "set x y".to_string();
         match Parser::parse_input(input) {
             Ok(CommandWrapper::Set(..)) => (),
             _ => panic!("Expected Command::Set"),
@@ -64,29 +61,11 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_input_of_delmany_command() {
-        let input = "delmany x y z".to_string();
-        match Parser::parse_input(input) {
-            Ok(CommandWrapper::DelMany(..)) => (),
-            _ => panic!("Expected Command::DelMany"),
-        }
-    }
-
-    #[test]
     fn test_parse_input_of_touch_command() {
         let input = "touch x".to_string();
         match Parser::parse_input(input) {
             Ok(CommandWrapper::Touch(..)) => (),
             _ => panic!("Expected Command::Touch"),
-        }
-    }
-
-    #[test]
-    fn test_parse_input_of_touchmany_command() {
-        let input = "touchmany x y z".to_string();
-        match Parser::parse_input(input) {
-            Ok(CommandWrapper::TouchMany(..)) => (),
-            _ => panic!("Expected Command::TouchMany"),
         }
     }
 

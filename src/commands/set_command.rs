@@ -100,12 +100,12 @@ mod tests {
 
     #[test]
     fn test_set_command_from_input() {
-        let input = "set str-key value".to_string();
+        let input = "set key value".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match SetCommand::from_parts(parts).unwrap() {
             CommandWrapper::Set(cmd) => {
-                assert_eq!(cmd.key, "str-key");
+                assert_eq!(cmd.key, "key");
                 assert_eq!(cmd.value, Value::Str("value".to_string()));
             }
             _ => panic!("Expected a Set command"),
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_set_command_from_input_missing_value() {
-        let input = "set str-key".to_string();
+        let input = "set key".to_string();
         let mut parts = input.split_whitespace();
         parts.next(); // Skip the command
         match SetCommand::from_parts(parts) {
